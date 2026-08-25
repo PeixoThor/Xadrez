@@ -65,4 +65,4 @@ java Jogo.JogoXadrez
    - *Exemplo de Destino:* `A 4`
 
 ---
-*Desenvolvido em Java como exercício prático de Arquitetura de Software e Programação Orientada a Objetos.*
+*Desenvolvido em Java como exercício prático de Programação Orientada a Objetos.*
