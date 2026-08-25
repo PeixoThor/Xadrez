@@ -1,99 +1,162 @@
 package Jogo;
 
-import Jogo.Peca.Cor;
-import Pecas.Bispo;
-import Pecas.Cavalo;
-import Pecas.Peao;
-import Pecas.Rainha;
-import Pecas.Rei;
-import Pecas.Torre;
+import Pecas.*;
 
+// Classe para o Tabuleiro.
 public class Tabuleiro {
     private Peca[][] tabuleiro = new Peca[8][8];
-    
+    private Posicao alvoEnPassant = null; // Armazena a casa vulnerável ao En Passant.
+
+    // Construtor do tabuleiro.
     public Tabuleiro() {
         preencher();
     }
 
-    public Peca getTabuleiro(int x, int y) {
-        return tabuleiro[x][y];
+    // Retorna o alvo atual do movimento En Passant.
+    public Posicao getAlvoEnPassant() {
+        return alvoEnPassant;
     }
 
-    // 1. PREENCHIMENTO INICIAL DO TABULEIRO
+    // Retorna a peça contida em uma coordenada.
+    public Peca getTabuleiro(int linha, int coluna) {
+        return tabuleiro[linha][coluna];
+    }
+
+    // Sobrescreve a peça em uma determinada coordenada.
+    public void setTabuleiro(int linha, int coluna, Peca peca) {
+        tabuleiro[linha][coluna] = peca;
+    }
+
+    // Preenche o tabuleiro com a formação inicial do xadrez.
     public void preencher() {
-        // Torres
-        tabuleiro[0][0] = new Torre(Cor.Preto, this);  tabuleiro[0][7] = new Torre(Cor.Preto, this);
-        tabuleiro[7][0] = new Torre(Cor.Branco, this); tabuleiro[7][7] = new Torre(Cor.Branco, this);
-        
-        // Cavalos
-        tabuleiro[0][1] = new Cavalo(Cor.Preto);  tabuleiro[0][6] = new Cavalo(Cor.Preto);
-        tabuleiro[7][1] = new Cavalo(Cor.Branco); tabuleiro[7][6] = new Cavalo(Cor.Branco);
+        tabuleiro[0][0] = new Torre(Peca.Cor.Preto, this); tabuleiro[0][7] = new Torre(Peca.Cor.Preto, this);
+        tabuleiro[7][0] = new Torre(Peca.Cor.Branco, this); tabuleiro[7][7] = new Torre(Peca.Cor.Branco, this);
 
-        // Bispos
-        tabuleiro[0][2] = new Bispo(Cor.Preto, this);  tabuleiro[0][5] = new Bispo(Cor.Preto, this);
-        tabuleiro[7][2] = new Bispo(Cor.Branco, this); tabuleiro[7][5] = new Bispo(Cor.Branco, this);
-        
-        // Rainhas
-        tabuleiro[0][3] = new Rainha(Cor.Preto, this);
-        tabuleiro[7][3] = new Rainha(Cor.Branco, this);
+        tabuleiro[0][1] = new Cavalo(Peca.Cor.Preto); tabuleiro[0][6] = new Cavalo(Peca.Cor.Preto);
+        tabuleiro[7][1] = new Cavalo(Peca.Cor.Branco); tabuleiro[7][6] = new Cavalo(Peca.Cor.Branco);
 
-        // Reis
-        tabuleiro[0][4] = new Rei(Cor.Preto, this);
-        tabuleiro[7][4] = new Rei(Cor.Branco, this);
+        tabuleiro[0][2] = new Bispo(Peca.Cor.Preto, this); tabuleiro[0][5] = new Bispo(Peca.Cor.Preto, this);
+        tabuleiro[7][2] = new Bispo(Peca.Cor.Branco, this); tabuleiro[7][5] = new Bispo(Peca.Cor.Branco, this);
 
-        // Peões
+        tabuleiro[0][3] = new Rainha(Peca.Cor.Preto, this);
+        tabuleiro[7][3] = new Rainha(Peca.Cor.Branco, this);
+
+        tabuleiro[0][4] = new Rei(Peca.Cor.Preto, this);
+        tabuleiro[7][4] = new Rei(Peca.Cor.Branco, this);
+
         for (int i = 0; i < 8; i++) {
-            tabuleiro[1][i] = new Peao(Cor.Preto);
-            tabuleiro[6][i] = new Peao(Cor.Branco);
+            tabuleiro[1][i] = new Peao(Peca.Cor.Preto, this);
+            tabuleiro[6][i] = new Peao(Peca.Cor.Branco, this);
         }
     }
 
-    // 2. LÓGICA DE MOVIMENTAÇÃO PELO TABULEIRO
-    public boolean movimenta(char origemColuna, int origemLinha, char destinoColuna, int destinoLinha) {
-        int origemColunaNumero = 0, destinoColunaNumero = 0;
-
-        // Converte a coluna de origem (Letra) para índice (Número)
-        switch (origemColuna) {
-            case 'A': origemColunaNumero = 0; break;
-            case 'B': origemColunaNumero = 1; break;
-            case 'C': origemColunaNumero = 2; break;
-            case 'D': origemColunaNumero = 3; break;
-            case 'E': origemColunaNumero = 4; break;
-            case 'F': origemColunaNumero = 5; break;
-            case 'G': origemColunaNumero = 6; break;
-            case 'H': origemColunaNumero = 7; break;
-            default: break;
+    // Imprime o tabuleiro no console.
+    public void imprimir() {
+        System.out.println("\n  A B C D E F G H");
+        for (int i = 0; i < 8; i++) {
+            System.out.print((i + 1) + " ");
+            for (int j = 0; j < 8; j++) {
+                if (tabuleiro[i][j] == null) {
+                    System.out.print(". ");
+                } else {
+                    System.out.print(tabuleiro[i][j].getAparencia() + " ");
+                }
+            }
+            System.out.println(" " + (i + 1));
         }
+        System.out.println("  A B C D E F G H\n");
+    }
 
-        // Converte a coluna de destino (Letra) para índice (Número)
-        switch (destinoColuna) {
-            case 'A': destinoColunaNumero = 0; break;
-            case 'B': destinoColunaNumero = 1; break;
-            case 'C': destinoColunaNumero = 2; break;
-            case 'D': destinoColunaNumero = 3; break;
-            case 'E': destinoColunaNumero = 4; break;
-            case 'F': destinoColunaNumero = 5; break;
-            case 'G': destinoColunaNumero = 6; break;
-            case 'H': destinoColunaNumero = 7; break;
-            default: break;
-        }
+    // Método que tenta efetuar o movimento entre origens e destinos.
+    public boolean movimenta(char OrigemColuna, int OrigemLinha, char DestinoColuna, int DestinoLinha) {
+        int oCol = Character.toUpperCase(OrigemColuna) - 'A';
+        int dCol = Character.toUpperCase(DestinoColuna) - 'A';
 
-        // Valida o movimento através da própria peça
-        if (tabuleiro[origemColunaNumero][origemLinha].movimento(origemColunaNumero, origemLinha, destinoColunaNumero, destinoLinha)) {
-            
-            // Impede a sobreposição de peças da mesma cor
-            if (tabuleiro[destinoColunaNumero][destinoLinha] != null && 
-                tabuleiro[origemColunaNumero][origemLinha].getCor() == tabuleiro[destinoColunaNumero][destinoLinha].getCor()) {
+        // Verifica se a posição informada está dentro dos limites do tabuleiro.
+        if (OrigemLinha < 0 || OrigemLinha > 7 || oCol < 0 || oCol > 7) return false;
+        if (DestinoLinha < 0 || DestinoLinha > 7 || dCol < 0 || dCol > 7) return false;
+
+        Peca pecaOrigem = tabuleiro[OrigemLinha][oCol];
+        if (pecaOrigem == null) return false;
+
+        // Verifica se o movimento da peça é logicamente viável.
+        if (pecaOrigem.movimento(oCol, OrigemLinha, dCol, DestinoLinha)) {
+            Peca pecaDestino = tabuleiro[DestinoLinha][dCol];
+
+            // Retorna falso se houver peça aliada no destino.
+            if (pecaDestino != null && pecaOrigem.getCor() == pecaDestino.getCor()) {
                 return false;
             }
+
+            // Tratamento prévio do En Passant.
+            boolean ehEnPassant = (pecaOrigem instanceof Peao) && (oCol != dCol) && (pecaDestino == null);
+            Peca peaoCapturadoEnPassant = null;
+
+            if (ehEnPassant) {
+                peaoCapturadoEnPassant = tabuleiro[OrigemLinha][dCol];
+                tabuleiro[OrigemLinha][dCol] = null;
+            }
+
+            // Efetua a troca no array bidimensional.
+            tabuleiro[DestinoLinha][dCol] = pecaOrigem;
+            tabuleiro[OrigemLinha][oCol] = null;
+
+            // Instancia validador de Xeque.
+            PecaControle pc = new PecaControle(pecaOrigem.getCor(), this);
             
-            // Efetua a troca de posições no array bidimensional
-            tabuleiro[destinoColunaNumero][destinoLinha] = tabuleiro[origemColunaNumero][origemLinha];
-            tabuleiro[origemColunaNumero][origemLinha] = null;
-        } else {
-            return false;
+            // Reverte o movimento caso ele coloque o próprio rei em xeque.
+            if (pc.verificaCheck(pecaOrigem.getCor())) {
+                tabuleiro[OrigemLinha][oCol] = pecaOrigem;
+                tabuleiro[DestinoLinha][dCol] = pecaDestino;
+                if (ehEnPassant) {
+                    tabuleiro[OrigemLinha][dCol] = peaoCapturadoEnPassant;
+                }
+                return false;
+            }
+
+            // Move também a torre caso a ação realizada seja o Roque.
+            if (pecaOrigem instanceof Rei && Math.abs(dCol - oCol) == 2) {
+                if (dCol > oCol) {
+                    if (pecaOrigem.getCor() == Peca.Cor.Branco) {
+                        tabuleiro[7][5] = tabuleiro[7][7];
+                        tabuleiro[7][7] = null;
+                    } else {
+                        tabuleiro[0][5] = tabuleiro[0][7];
+                        tabuleiro[0][7] = null;
+                    }
+                } else {
+                    if (pecaOrigem.getCor() == Peca.Cor.Branco) {
+                        tabuleiro[7][3] = tabuleiro[7][0];
+                        tabuleiro[7][0] = null;
+                    } else {
+                        tabuleiro[0][3] = tabuleiro[0][0];
+                        tabuleiro[0][0] = null;
+                    }
+                }
+            }
+
+            // Atualiza a casa alvo do En Passant para o próximo turno.
+            if (pecaOrigem instanceof Peao && Math.abs(DestinoLinha - OrigemLinha) == 2) {
+                alvoEnPassant = new Posicao((OrigemLinha + DestinoLinha) / 2, dCol);
+            } else {
+                alvoEnPassant = null;
+            }
+
+            if (pecaOrigem instanceof Peao) {
+                ((Peao) pecaOrigem).moveu = true;
+                if ((pecaOrigem.getCor() == Peca.Cor.Branco && DestinoLinha == 0) ||
+                    (pecaOrigem.getCor() == Peca.Cor.Preto && DestinoLinha == 7)) {
+                    tabuleiro[DestinoLinha][dCol] = new Rainha(pecaOrigem.getCor(), this);
+                }
+            }
+
+            // Marca que a peça já se moveu na partida.
+            if (pecaOrigem instanceof Torre) ((Torre) pecaOrigem).setMoveu(true);
+            if (pecaOrigem instanceof Rei) ((Rei) pecaOrigem).setMoveu(true);
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

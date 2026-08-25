@@ -1,23 +1,36 @@
 package Jogo;
 
-// 1. CLASSE ABSTRATA BASE PARA TODAS AS PEÇAS
-public abstract class Peca {  
-    
-    // 2. ENUMERADOR DE CORES
+// Classe abstrata para a peça.
+public abstract class Peca { 
+
+    // Enumerador de cores das peças.
     public enum Cor {
         Branco, Preto;
     }
-  
-    private Cor cor;
-
-    public Cor getCor() {
-        return cor;
-    }
     
+    private Cor cor;
+    private String aparencia = "";
+
+    // Construtor da peça.
     public Peca(Cor c) {
         this.cor = c;
     }
-  
-    // 3. ASSINATURA DO MÉTODO DE MOVIMENTO (A ser implementado pelas classes filhas)
+
+    // Retorna a cor da peça.
+    public Cor getCor() {
+        return cor;
+    }
+
+    // Retorna a aparência (símbolo) da peça.
+    public String getAparencia() {
+        return aparencia;
+    }
+
+    // Define a aparência da peça.
+    public void setAparencia(String aparencia) {
+        this.aparencia = aparencia;
+    }
+    
+    // Método de validação do movimento para essa peça: retorna True se o movimento for possível.
     public abstract boolean movimento(int x0, int y0, int x1, int y1);
 }

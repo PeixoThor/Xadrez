@@ -3,82 +3,134 @@ package Pecas;
 import Jogo.Peca;
 import Jogo.Tabuleiro;
 
+// Classe para a peça Rei.
 public class Rei extends Peca {
-    private Tabuleiro tabuleiro; 
+    private Tabuleiro tab; 
     private boolean moveu = false;
-    private PecaControle pecaControle;
-    
-    // 1. MOVIMENTO NORMAL DO REI (1 casa em qualquer direção)
-    public boolean movimento(int x0, int y0, int x1, int y1) {
-        int dx = Math.abs(x1 - x0);
-        int dy = Math.abs(y1 - y0);
+    private PecaControle p;
 
-        if ((dx <= 1 && dy <= 1) && (dx + dy > 0)) {
-            // Verifica se a casa de destino coloca o próprio Rei em Check
-            if (!pecaControle.verificaCheck(this.getCor(), x1, y1)) {
+    // Retorna status de movimentação da peça.
+    public boolean getMoveu() { return moveu; }
+    
+    // Altera status de movimentação.
+    public void setMoveu(boolean moveu) { this.moveu = moveu; }
+
+    // Método de validação do movimento para essa peça: retorna True se o movimento for possível.
+    public boolean movimento(int x0, int y0, int x1, int y1){
+        int Dx = Math.abs(x1 - x0);
+        int Dy = Math.abs(y1 - y0);
+
+        // Movimentação normal: 1 casa para cada direção.
+        if ((Dx <= 1 && Dy <= 1) && (Dx + Dy > 0)) {
+            // Verifica se o rei não estará em ataque na casa de destino.
+            if (!p.verificaCheck(this.getCor(), x1, y1)) {
                 moveu = true;
                 return true;
             }
             return false;
         } 
 
-        // 2. MOVIMENTO DE ROQUE (dx == 2 e não se moveu)
-        if (dy == 0 && dx == 2 && !moveu) {
+        // Movimentação por Roque: 2 casas para esquerda ou direita se rei e torre não se movimentaram.
+        if (Dy == 0 && Dx == 2 && !moveu) {
+            // Verifica se o rei não está ameaçado atualmente.
+            if (p.verificaCheck(this.getCor(), x0, y0)) {
+                return false;
+            }
+
+            // Determina a direção do roque (esquerda ou direita).
             int dirX = (x1 > x0) ? 1 : -1;   
 
-            // Roque Curto (Direita)
+            // Roque curto (direita).
             if (dirX == 1) {
-                Peca pecaAux = (this.getCor() == Cor.Branco) ? tabuleiro.getTabuleiro(7, 7) : tabuleiro.getTabuleiro(0, 7);
-                if (pecaAux instanceof Torre && !(((Torre) pecaAux).getMoveu())) {
-                    for (int i = 1; i <= dx; i++) {  
-                        int x = x0 + (i * dirX);
-                        if (tabuleiro.getTabuleiro(y0, x) != null || pecaControle.verificaCheck(this.getCor(), x, y0)) {
-                            return false; 
-                        }
-                    }      
-                    // Executa a movimentação da Torre
-                    if (this.getCor() == Cor.Branco) {
-                        tabuleiro.movimenta('H', 7, 'F', 7);
-                    } else {
-                        tabuleiro.movimenta('H', 0, 'F', 0);
-                    }
-                    moveu = true;
-                    return true;
+                // Posição em que a torre estará.
+                int torreX = x0 + 3;
+                Peca torre = tab.getTabuleiro(y0, torreX);
+
+                // A peça na posição da torre deve ser uma torre e não pode ter se movido ainda.
+                if (!(torre instanceof Torre) || ((Torre) torre).getMoveu()) {
+                    return false;
                 }
-            } 
-            // Roque Longo (Esquerda)
-            else {
-                Peca pecaAux = (this.getCor() == Cor.Branco) ? tabuleiro.getTabuleiro(7, 0) : tabuleiro.getTabuleiro(0, 0);
-                if (pecaAux instanceof Torre && !(((Torre) pecaAux).getMoveu())) {
-                    for (int i = 1; i <= dx; i++) {  
-                        int x = x0 + (i * dirX);
-                        if (tabuleiro.getTabuleiro(y0, x) != null || pecaControle.verificaCheck(this.getCor(), x, y0)) {
-                            return false;  
-                        }
-                    }
-                    // Executa a movimentação da Torre
-                    if (this.getCor() == Cor.Branco) {
-                        tabuleiro.movimenta('A', 7, 'D', 7);
-                    } else {
-                        tabuleiro.movimenta('A', 0, 'D', 0);
-                    }
-                    moveu = true;
-                    return true;
+                
+                // Aqui inicia a testagem bruta se as casas intermediárias estão vazias.
+                // Casa seguinte vazia.
+                if (tab.getTabuleiro(y0, x0 + 1) != null) {
+                    return false;
                 }
+                // Casa de destino vazia.
+                if (tab.getTabuleiro(y0, x0 + 2) != null) {
+                    return false;
+                }
+                // Casa seguinte sem ameaça de xeque.
+                if (p.verificaCheck(this.getCor(), x0 + 1, y0)) {
+                    return false;
+                }
+                // Casa de destino sem ameaça de xeque.
+                if (p.verificaCheck(this.getCor(), x0 + 2, y0)) {
+                    return false;
+                }
+
+                // Se chegou até aqui: Roque possível, então movimenta a torre manualmente.
+                 if (!tab.movimenta('H', y0, 'F', y0)) {
+                    return false;   // Caso o movimento da torre não aconteça.
+                }
+
+                moveu = true;
+                return true;
             }
-        }
+            // Roque Longo (esquerda).
+            else {
+                // Posição em que a torre estará.
+                int torreX = x0 - 4;
+                Peca torre = tab.getTabuleiro(y0, torreX);
+
+                // A peça na posição da torre deve ser uma torre e não pode ter se movido ainda.
+                if (!(torre instanceof Torre) || ((Torre) torre).getMoveu()) {
+                    return false;
+                }
+
+                // Aqui inicia a testagem bruta se as casas intermediárias estão vazias.
+                // Primeira casa intermediária.
+                if (tab.getTabuleiro(y0, x0 - 1) != null) {
+                    return false;
+                }
+                // Segunda casa intermediária.
+                if (tab.getTabuleiro(y0, x0 - 2) != null) {
+                    return false;
+                }
+                // Terceira casa intermediária.
+                if (tab.getTabuleiro(y0, x0 - 3) != null) {
+                    return false;
+                }
+                // A primeira não pode estar ameaçada.
+                if (p.verificaCheck(this.getCor(), x0 - 1, y0)) {
+                    return false;
+                }
+                // A segunda (destino) não pode estar ameaçada. 
+                if (p.verificaCheck(this.getCor(), x0 - 2, y0)) {
+                    return false;
+                }
+
+                // Roque possível: movimenta a torre e retorna pra chamada original.
+                if (!tab.movimenta('A', y0, 'D', y0)) {
+                    return false; // Caso o movimento da torre não aconteça.
+                }
+
+                moveu = true;
+                return true;
+            }
+        } 
         return false;    
     }
 
+    // Construtor do rei. 
     public Rei(Cor c, Tabuleiro tabuleiro) {
         super(c);
-        this.tabuleiro = tabuleiro;
-        this.pecaControle = new PecaControle(c, tabuleiro);
-        
-        if (c == Cor.Branco) {
+        tab = tabuleiro;
+        this.p = new PecaControle(c, tabuleiro);
+        if(c == Cor.Branco){
             this.setAparencia("\u265A");
         } else {
             this.setAparencia("\u2654");
         }
-    }
+    }   
 }
